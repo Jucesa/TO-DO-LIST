@@ -1,0 +1,61 @@
+<h1><% @user.name %></h1>
+<nav class="solid">
+  <ul>
+    <li class="clear" id="logout">
+      <%= link_to 'Logout', root_path, method: :delete %>
+    </li>
+  </ul>
+</nav>
+</header>
+
+<h2>Tasks</h2>
+<div class="button-container">
+  <button id="new-task-btn" class="btn btn-primary">Create New Task</button>
+</div>
+<div class="task-board">
+  <div class="task-column" id="todo">
+    <h3>To-Do</h3>
+    <div class="task-list">
+      <% if @tasks.present? %>
+        <% @tasks.where(status: 'todo').each do |task| %>
+          <div class="task" draggable="true" data-id="<%= task.id %>">
+            <p><%= task.titulo %></p>
+            <p><%= task.prioridade %></p>
+          </div>
+        <% end %>
+      <% else %>
+        <p>No tasks available.</p>
+      <% end %>
+    </div>
+  </div>
+  <div class="task-column" id="working_on_it">
+    <h3>Working on it</h3>
+    <div class="task-list">
+      <% if @tasks.present? %>
+        <% @tasks.where(status: 'working_on_it').each do |task| %>
+          <div class="task" draggable="true" data-id="<%= task.id %>">
+            <p><%= task.titulo %></p>
+            <p><%= task.prioridade %></p>
+          </div>
+        <% end %>
+      <% else %>
+        <p>No tasks available.</p>
+      <% end %>
+    </div>
+  </div>
+  <div class="task-column" id="done">
+    <h3>Done</h3>
+    <div class="task-list">
+      <% if @tasks.present? %>
+        <% @tasks.where(status: 'done').each do |task| %>
+          <div class="task" draggable="true" data-id="<%= task.id %>">
+            <p><%= task.titulo %></p>
+            <p><%= task.prioridade %></p>
+          </div>
+        <% end %>
+      <% else %>
+        <p>No tasks available.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

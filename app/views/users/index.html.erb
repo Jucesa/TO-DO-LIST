@@ -1,0 +1,14 @@
+<h1 class="centralize">Bem-vindo</h1>
+
+<h2 class="centralize">Login</h2>
+<body class="centralize">
+    <%= form_with scope: :session, url: session_path, method: :post do |form| %>
+        <div class="form-field"><%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %></div>
+        <div class="form-field"><%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %></div>
+        <div class="form-field"><%= form.submit "Sign in" %></div>
+    <% end %>
+    <div class="outline centralize"><%= link_to "Novo usuário", new_user_path %></div>
+</body>
+
+
+<%= stylesheet_link_tag 'global', media: 'all' %>

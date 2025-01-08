@@ -1,0 +1,6 @@
+<!-- app/views/layouts/_flash.html.erb -->
+<% flash.each do |key, message| %>
+  <div class="flash <%= key %>">
+    <%= message %>
+  </div>
+<% end %>

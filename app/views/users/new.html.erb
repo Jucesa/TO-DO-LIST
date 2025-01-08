@@ -1,0 +1,9 @@
+<!-- app/views/users/new.html.erb -->
+<h1 class="outline centralize">Novo Usuário</h1>
+
+<body class="centralize">
+    <%= render "form", user: @user %>
+    </br>
+    <div class="solid centralize"><%= link_to "Cancel", users_path %></div>
+</body>
+<%= stylesheet_link_tag 'global', media: 'all' %>

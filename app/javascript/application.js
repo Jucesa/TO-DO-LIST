@@ -1,3 +1,8 @@
-// Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
-import "@hotwired/turbo-rails"
-import "controllers"
+//= require collapsible
+//= require drag_and_drop
+//= require new_task
+
+import '../stylesheets/application'; // Import your CSS if needed
+import './collapsible';
+import './drag_and_drop';
+import './new_task';
