@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  titulo: MyString
+  prioridade: MyString
+  status: MyString
+  tempo_estimado: 1
+  descrição: MyString
+  descrição: MyString
+  data_inicio: 2025-01-07
+  data_limite: 2025-01-07
+
+two:
+  titulo: MyString
+  prioridade: MyString
+  status: MyString
+  tempo_estimado: 1
+  descrição: MyString
+  descrição: MyString
+  data_inicio: 2025-01-07
+  data_limite: 2025-01-07
