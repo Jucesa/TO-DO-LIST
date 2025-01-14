@@ -1,0 +1,57 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="modal fade show d-block" tabindex="-1" aria-hidden="true" style="background: rgba(0, 0, 0, 0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New List</h5>
+          <%= link_to "X", "#", class: "btn btn-danger", data: { controller: "modal", action: "modal#close" } %>
+        </div>
+        <div class="modal-body">
+          <%= form_with(model: list, local: false, html: { class: "needs-validation", novalidate: true }) do |form| %>
+            <% if list.errors.any? %>
+              <div id="error_explanation" class="alert alert-danger">
+                <h2><%= pluralize(list.errors.count, "error") %> prohibited this list from being saved:</h2>
+                <ul>
+                  <% list.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <div class="mb-3">
+              <%= form.label :name, "List Name", class: "form-label" %>
+              <%= form.text_field :name, class: "form-control", placeholder: "Enter list name", required: true %>
+              <div class="invalid-feedback">Please provide a name for the list.</div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <%= form.submit "Save List", class: "btn btn-primary", data: { turbo_frame: "modal" } %>
+              <%= link_to "Cancel", "#", class: "btn btn-outline-secondary", data: { turbo_frame: "modal" } %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<script>
+  // Example starter JavaScript for disabling form submissions if there are invalid fields
+  (function () {
+    'use strict';
+
+    const forms = document.querySelectorAll('.needs-validation');
+
+    Array.from(forms).forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+
+        form.classList.add('was-validated');
+      }, false);
+    });
+  })();
+</script>

@@ -1,0 +1,19 @@
+current directory: /home/jucesa/JustDoIt/vendor/bundle/ruby/3.4.0/gems/debug-1.10.0/ext/debug
+/home/jucesa/.local/share/mise/installs/ruby/3.4.1/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /home/jucesa/JustDoIt/vendor/bundle/ruby/3.4.0/gems/debug-1.10.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20250112-10686-e9idvn sitelibdir\=./.gem.20250112-10686-e9idvn clean
+
+current directory: /home/jucesa/JustDoIt/vendor/bundle/ruby/3.4.0/gems/debug-1.10.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20250112-10686-e9idvn sitelibdir\=./.gem.20250112-10686-e9idvn
+compiling debug.c
+compiling iseq_collector.c
+linking shared-object debug/debug.so
+
+current directory: /home/jucesa/JustDoIt/vendor/bundle/ruby/3.4.0/gems/debug-1.10.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20250112-10686-e9idvn sitelibdir\=./.gem.20250112-10686-e9idvn install
+/usr/bin/install -c -m 0755 debug.so ./.gem.20250112-10686-e9idvn/debug
+
+current directory: /home/jucesa/JustDoIt/vendor/bundle/ruby/3.4.0/gems/debug-1.10.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20250112-10686-e9idvn sitelibdir\=./.gem.20250112-10686-e9idvn clean

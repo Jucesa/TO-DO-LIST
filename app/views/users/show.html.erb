@@ -1,0 +1,160 @@
+<h2 class="my-4"><%= @user.name %>'s tasks</h2>
+
+<div class="button-container mb-4">
+  <%= link_to "New List", new_user_list_path(@user), class: "btn btn-primary mr-2", data: { turbo_frame: "modal" } %>
+</div>
+
+<div class="task-board-container" style="overflow-x: auto; white-space: nowrap;">
+  <div class="task-board d-flex flex-nowrap">
+    <% if @lists.present? %>
+      <% @lists.each do |list| %>
+        <div class="task-column" 
+            id="list-<%= list.id %>" 
+            data-id="<%= list.id %>" 
+            style="display: inline-block; float: none;" 
+            ondragover="event.preventDefault();" 
+            ondrop="drop(event, <%= list.id %>)">
+          <div class="card border-primary d-inline-flex ml-1 mr-1">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-2">
+              <h3 class="card-title mb-0 mr-2"><%= truncate(list.name, length: 20) %></h3>
+              <div class="btn-group">
+                <%= link_to "New Task", new_user_list_task_path(@user, list), class: "btn btn-light btn-sm m-0", data: { turbo_frame: "modal" } %>
+                <%= link_to 'Delete', user_list_path(@user, list), method: :delete, data: { turbo_frame: "modal" }, class: "btn btn-sm btn-danger m-0" %>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <ul class="list-group mb-3">
+                <% list.tasks.each do |task| %>
+                  <li class="list-group-item d-flex justify-content-between align-items-center" 
+                      id="<%= dom_id(task) %>" 
+                      draggable="true" 
+                      data-id="<%= task.id %>" 
+                      ondragstart="drag(event)">
+                    <div class="task-info mr-5">
+                      <p><strong>Task name: </strong><%= task.name %></p>
+                      <p><strong>Priority: </strong><%= task.priority %></p>
+                    </div>
+                    <div class="btn-group">
+                      <%= link_to 'View', user_list_task_path(@user, list, task), class: "btn btn-sm btn-outline-primary", data: { action: "modal#open", turbo_frame: "modal" } %>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <p>No lists available. Create one to get started!</p>
+    <% end %>
+  </div>
+</div>
+
+<script type="module">
+  import { Controller } from "@hotwired/stimulus";
+  import { Turbo } from "@hotwired/turbo-rails";
+
+  export default class extends Controller {
+    static targets = ["modal"];
+
+    connect() {
+      console.log("Modal controller connected");
+    }
+
+    close(event) {
+      event.preventDefault();
+      this.element.removeAttribute("src");
+      this.element.removeAttribute("complete");
+      this.modalTarget.classList.add('d-none');
+      this.modalTarget.classList.remove('fade', 'show'); 
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.btn-primary[data-task-id]');
+    editButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const taskId = this.dataset.taskId;
+        // You can use taskId to fetch the task data (either via AJAX or make it available on the page).
+        // Example: Set the task data for the modal dynamically
+        fetch(`/tasks/${taskId}`)
+          .then(response => response.json())
+          .then(data => {
+            // Dynamically update the modal with the task data
+            document.querySelector('#editModal .modal-body').innerHTML = data.task_html;
+          });
+      });
+    });
+  });
+
+  document.addEventListener("DOMContentLoaded", function() {
+    console.log("Script loaded successfully!");
+
+    // Add event listeners for opening modals
+    const openModalButtons = document.querySelectorAll("[data-action='modal#open']");
+    const modal = document.getElementById('task-modal');
+    const closeModalButtons = document.querySelectorAll("[data-action='modal#close']");
+
+    openModalButtons.forEach(button => {
+      button.addEventListener("click", function(event) {
+        event.preventDefault();
+        modal.classList.remove('d-none'); // Show the modal
+        modal.classList.add('fade', 'show'); // Make modal visible with fade-in effect
+      });
+    });
+
+    // Close modal when clicking the close button or the cancel button
+    closeModalButtons.forEach(button => {
+      button.addEventListener("click", function(event) {
+        modal.classList.add('d-none'); // Hide the modal
+        modal.classList.remove('fade', 'show'); // Remove fade-in effect
+      });
+    });
+  });
+
+
+  function drag(event) {
+    event.dataTransfer.setData("task_id", event.target.dataset.id);
+  }
+
+  function drop(event, listId) {
+    event.preventDefault();
+    const taskId = event.dataTransfer.getData("task_id");
+    const taskElement = document.querySelector(`[data-id='${taskId}']`);
+    const targetList = event.target.closest(".task-column").querySelector(".list-group");
+
+    // Update the DOM by moving the task element
+    targetList.appendChild(taskElement);
+
+    // Send the update request to the backend to update the task's list_id
+    fetch(`/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content,
+      },
+      body: JSON.stringify({ task: { list_id: listId } }),
+    }).then((response) => {
+      if (!response.ok) {
+        alert("Failed to update task. Please try again.");
+        // Optionally revert task position if needed
+      }
+    }).catch((error) => {
+      alert(`Failed to update task: ${error.message}`);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("Script loaded successfully!");
+
+    // Attach Drag-and-Drop Event Listeners
+    document.querySelectorAll(".task-column").forEach((column) => {
+      column.addEventListener("dragover", (event) => event.preventDefault());
+      column.addEventListener("drop", (event) => drop(event, column.dataset.id));
+    });
+
+    document.querySelectorAll(".list-group-item").forEach((item) => {
+      item.addEventListener("dragstart", drag);
+    });
+  });
+</script>

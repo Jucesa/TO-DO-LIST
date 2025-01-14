@@ -1,0 +1,57 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Task Details</h5>
+          <%= link_to "X", "#", class: "btn btn-danger", data: { controller: "modal", action: "modal#close" } %>
+        </div>
+        <div class="modal-body">
+          <div id="<%= dom_id task %>">
+            <p>
+              <strong>Name:</strong>
+              <%= task.name %>
+            </p>
+
+            <p>
+              <strong>Priority:</strong>
+              <%= task.priority %>
+            </p>
+
+            <p>
+              <strong>Estimated time:</strong>
+              <%= task.estimated_time %>
+            </p>
+
+            <p>
+              <strong>Start date:</strong>
+              <%= task.start_date %>
+            </p>
+
+            <p>
+              <strong>End date:</strong>
+              <%= task.end_date %>
+            </p>
+
+            <p>
+              <strong>Details:</strong>
+              <%= task.details %>
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- Close button to close the current modal -->
+          <%= link_to "Cancel", "#", class: "btn btn-secondary", data: { controller: "modal", action: "modal#close" } %>
+
+          <!-- Button to switch to edit form -->
+          <%= link_to "Edit", edit_user_list_task_path(@user, @list, task), class: "btn btn-warning", data: { turbo_frame: "modal" } %>
+
+          <!-- Delete button -->
+          <%= button_to user_list_task_path(@user, @list, task), method: :delete, data: { turbo_frame: "modal" }, class: "btn btn-danger" do %>
+            Delete Task
+          <% end %>  
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,13 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-body">
+          <%= render "task", task: @task %>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
