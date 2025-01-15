@@ -27,10 +27,14 @@
 
             <div class="mb-3">
               <%= form.label :priority, "Priority", class: "form-label" %>
-              <%= form.text_field :priority, class: "form-control", placeholder: "Enter priority level", required: true %>
-              <div class="invalid-feedback">Please enter the task priority.</div>
+              <%= form.select :priority, 
+                  [['High', 'High'], ['Medium', 'Medium'], ['Low', 'Low']], 
+                  { prompt: 'Select priority level' }, 
+                  class: "form-select", 
+                  required: true %>
+              <div class="invalid-feedback">Please select a task priority.</div>
             </div>
-
+          
             <div class="mb-3">
               <%= form.label :estimated_time, "Estimated Time", class: "form-label" %>
               <%= form.text_field :estimated_time, class: "form-control", placeholder: "Enter estimated time (e.g., 2 hours)" %>

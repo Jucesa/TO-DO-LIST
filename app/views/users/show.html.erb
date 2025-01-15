@@ -2,6 +2,9 @@
 
 <div class="button-container mb-4">
   <%= link_to "New List", new_user_list_path(@user), class: "btn btn-primary mr-2", data: { turbo_frame: "modal" } %>
+  <a class="btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="modal" data-bs-target="#sortTasksModal">
+    Sort Tasks
+  </a>
 </div>
 
 <div class="task-board-container" style="overflow-x: auto; white-space: nowrap;">
@@ -16,7 +19,7 @@
             ondrop="drop(event, <%= list.id %>)">
           <div class="card border-primary d-inline-flex ml-1 mr-1">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-2">
-              <h3 class="card-title mb-0 mr-2"><%= truncate(list.name, length: 20) %></h3>
+              <h3 class="card-title mb-0 mr-5"><%= truncate(list.name, length: 20) %></h3>
               <div class="btn-group">
                 <%= link_to "New Task", new_user_list_task_path(@user, list), class: "btn btn-light btn-sm m-0", data: { turbo_frame: "modal" } %>
                 <%= link_to 'Delete', user_list_path(@user, list), method: :delete, data: { turbo_frame: "modal" }, class: "btn btn-sm btn-danger m-0" %>
@@ -33,9 +36,10 @@
                     <div class="task-info mr-5">
                       <p><strong>Task name: </strong><%= task.name %></p>
                       <p><strong>Priority: </strong><%= task.priority %></p>
+                      <p><strong>Start date: </strong><%= task.start_date %></p>
                     </div>
                     <div class="btn-group">
-                      <%= link_to 'View', user_list_task_path(@user, list, task), class: "btn btn-sm btn-outline-primary", data: { action: "modal#open", turbo_frame: "modal" } %>
+                      <%= link_to 'More', user_list_task_path(@user, list, task), class: "btn btn-sm btn-outline-primary", data: { action: "modal#open", turbo_frame: "modal" } %>
                     </div>
                   </li>
                 <% end %>
@@ -50,111 +54,182 @@
   </div>
 </div>
 
-<script type="module">
-  import { Controller } from "@hotwired/stimulus";
-  import { Turbo } from "@hotwired/turbo-rails";
+<!-- Sort Tasks Modal -->
+<div class="modal fade" id="sortTasksModal" tabindex="-1" aria-labelledby="sortTasksModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sortTasksModalLabel">Sort and Filter Tasks</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Dropdown for Selecting Task Attribute -->
+        <div class="mb-3">
+          <label for="taskAttributeSelect" class="form-label">Select Task Attribute</label>
+          <select id="taskAttributeSelect" class="form-select">
+            <option value="none">None</option>
+            <option value="name">Task Name</option>
+            <option value="priority">Priority</option>
+            <option value="estimated_time">Estimated Time</option>
+            <option value="start_date">Start Date</option>
+            <option value="end_date">End Date</option>
+          </select>
+        </div>
+        <!-- Search Box -->
+        <div class="mb-3">
+          <label for="taskSearchInput" class="form-label">Search</label>
+          <input type="text" id="taskSearchInput" class="form-control" placeholder="Enter search text" />
+        </div>
 
-  export default class extends Controller {
-    static targets = ["modal"];
+        <!-- Task List Display -->
+        <ul id="filteredTaskList" class="list-group">
+          <!-- Filtered tasks will appear here -->
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <!-- Confirm Filter Button -->
+        <button type="button" class="btn btn-primary" id="confirmFilterBtn">Confirm Filter</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-    connect() {
-      console.log("Modal controller connected");
-    }
+<script>
+document.addEventListener('turbo:load', () => {
+  const sortTasksModal = new bootstrap.Modal(document.getElementById('sortTasksModal'));
+  const confirmFilterBtn = document.getElementById('confirmFilterBtn');
 
-    close(event) {
-      event.preventDefault();
-      this.element.removeAttribute("src");
-      this.element.removeAttribute("complete");
-      this.modalTarget.classList.add('d-none');
-      this.modalTarget.classList.remove('fade', 'show'); 
+  // Fetch all tasks initially
+  const tasks = <%= @tasks.to_json %>; // Pass all tasks as JSON from the controller
+
+  // Reference to the elements in the modal
+  const taskAttributeSelect = document.getElementById('taskAttributeSelect');
+  const taskSearchInput = document.getElementById('taskSearchInput');
+  const filteredTaskList = document.getElementById('filteredTaskList');
+
+  // Function to filter tasks based on attribute and search text
+  function filterTasks() {
+    const selectedAttribute = taskAttributeSelect.value;
+    const searchText = taskSearchInput.value.toLowerCase();
+
+    const filteredTasks = tasks.filter(task => {
+      if (selectedAttribute === "none") return true; // No filtering if 'None' is selected
+      const attributeValue = task[selectedAttribute].toString().toLowerCase();
+      return attributeValue.includes(searchText);
+    });
+
+    displayFilteredTasks(filteredTasks);
+    updateTaskDisplay(filteredTasks); // Update tasks on the lists
+  }
+
+  // Display filtered tasks in the modal
+  function displayFilteredTasks(filteredTasks) {
+    filteredTaskList.innerHTML = ''; // Clear previous list
+
+    if (filteredTasks.length === 0) {
+      filteredTaskList.innerHTML = '<li class="list-group-item">No tasks found</li>';
+    } else {
+      filteredTasks.forEach(task => {
+        const taskItem = document.createElement('li');
+        taskItem.classList.add('list-group-item');
+        taskItem.innerHTML = `<strong>${task.name}</strong><br>Priority: ${task.priority}<br>Start Date: ${task.start_date}`;
+        filteredTaskList.appendChild(taskItem);
+      });
     }
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    const editButtons = document.querySelectorAll('.btn-primary[data-task-id]');
-    editButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        const taskId = this.dataset.taskId;
-        // You can use taskId to fetch the task data (either via AJAX or make it available on the page).
-        // Example: Set the task data for the modal dynamically
-        fetch(`/tasks/${taskId}`)
-          .then(response => response.json())
-          .then(data => {
-            // Dynamically update the modal with the task data
-            document.querySelector('#editModal .modal-body').innerHTML = data.task_html;
-          });
+  // Update the tasks displayed on the lists
+  function updateTaskDisplay(filteredTasks) {
+    // Find all task columns on the page
+    const taskColumns = document.querySelectorAll('.task-column');
+
+    taskColumns.forEach((taskColumn) => {
+      const listId = taskColumn.getAttribute('data-id');
+      const taskList = taskColumn.querySelector('ul');
+
+      // Clear the existing tasks in the list
+      taskList.innerHTML = '';
+
+      // Filter tasks for this specific list and add them to the list
+      filteredTasks.forEach(task => {
+        if (task.list_id === parseInt(listId, 10)) {
+          const taskItem = document.createElement('li');
+          taskItem.classList.add('list-group-item');
+          taskItem.innerHTML = `
+            <strong>${task.name}</strong><br>
+            Priority: ${task.priority}<br>
+            Start Date: ${task.start_date}
+          `;
+          taskList.appendChild(taskItem);
+        }
       });
     });
+  }
+
+  // Event listener to trigger filtering when the search box is typed into
+  taskSearchInput.addEventListener('input', filterTasks);
+
+  // Event listener to trigger filtering when the dropdown selection is changed
+  taskAttributeSelect.addEventListener('change', filterTasks);
+
+  // Confirm Filter Button click event
+  confirmFilterBtn.addEventListener('click', () => {
+    filterTasks(); // Apply the filter
+    sortTasksModal.hide(); // Close the modal
   });
-
-  document.addEventListener("DOMContentLoaded", function() {
-    console.log("Script loaded successfully!");
-
-    // Add event listeners for opening modals
-    const openModalButtons = document.querySelectorAll("[data-action='modal#open']");
-    const modal = document.getElementById('task-modal');
-    const closeModalButtons = document.querySelectorAll("[data-action='modal#close']");
-
-    openModalButtons.forEach(button => {
-      button.addEventListener("click", function(event) {
-        event.preventDefault();
-        modal.classList.remove('d-none'); // Show the modal
-        modal.classList.add('fade', 'show'); // Make modal visible with fade-in effect
-      });
-    });
-
-    // Close modal when clicking the close button or the cancel button
-    closeModalButtons.forEach(button => {
-      button.addEventListener("click", function(event) {
-        modal.classList.add('d-none'); // Hide the modal
-        modal.classList.remove('fade', 'show'); // Remove fade-in effect
-      });
-    });
-  });
+</script>
 
 
+<script>
   function drag(event) {
-    event.dataTransfer.setData("task_id", event.target.dataset.id);
+    const taskId = parseInt(event.target.id.split('_')[1], 10);
+    event.dataTransfer.setData("taskId", taskId); 
   }
 
   function drop(event, listId) {
+
     event.preventDefault();
-    const taskId = event.dataTransfer.getData("task_id");
-    const taskElement = document.querySelector(`[data-id='${taskId}']`);
-    const targetList = event.target.closest(".task-column").querySelector(".list-group");
 
-    // Update the DOM by moving the task element
-    targetList.appendChild(taskElement);
+    const taskId = event.dataTransfer.getData("taskId");
 
-    // Send the update request to the backend to update the task's list_id
-    fetch(`/tasks/${taskId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content,
-      },
-      body: JSON.stringify({ task: { list_id: listId } }),
-    }).then((response) => {
-      if (!response.ok) {
-        alert("Failed to update task. Please try again.");
-        // Optionally revert task position if needed
-      }
-    }).catch((error) => {
-      alert(`Failed to update task: ${error.message}`);
-    });
+    const taskElement = document.getElementById(`task_${taskId}`);
+
+    const newList = document.getElementById("list-" + listId);
+
+    newList.querySelector("ul").appendChild(taskElement);
+
+    updateTaskList(taskId, listId);
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    console.log("Script loaded successfully!");
-
-    // Attach Drag-and-Drop Event Listeners
-    document.querySelectorAll(".task-column").forEach((column) => {
-      column.addEventListener("dragover", (event) => event.preventDefault());
-      column.addEventListener("drop", (event) => drop(event, column.dataset.id));
+  function updateTaskList(taskId, listId) {
+    fetch(`/tasks/${taskId}/update_list`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        list_id: listId,
+      }),
+    })    
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .catch(error => {
+      
     });
-
-    document.querySelectorAll(".list-group-item").forEach((item) => {
-      item.addEventListener("dragstart", drag);
-    });
-  });
+  }
 </script>
+
+<style>
+  .list-group-item {
+    border-bottom: 1px solid #ddd; /* Add a light gray border to the bottom */
+  }
+
+  .list-group-item:last-child {
+    border-bottom: none; /* Remove border from the last item */
+  }
+</style>

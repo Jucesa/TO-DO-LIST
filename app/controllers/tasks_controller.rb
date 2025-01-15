@@ -2,7 +2,10 @@ class TasksController < ApplicationController
   before_action :set_user
   before_action :set_list, only: [:new, :create, :edit, :update, :destroy, :show]
   before_action :set_task, only: [:edit, :update, :destroy, :show]
-
+  def index 
+    @tasks = Task.all
+  end
+  
   def new
     @task = @list.tasks.build
     render turbo_stream: turbo_stream.replace("modal", partial: "tasks/form", locals: { task: @task, user: @user, list: @list })
@@ -24,11 +27,18 @@ class TasksController < ApplicationController
     render turbo_stream: turbo_stream.replace("modal", partial: "tasks/form", locals: { task: @task })
   end
   
-
   def update
-    @task = Task.find(params[:id])
     if @task.update(task_params)
-      render json: { message: "Task updated successfully" }, status: :ok
+      render json: { success: true }
+    else
+      render json: { success: false, errors: @task.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  def update_list
+    @task = Task.find(params[:id])
+    if @task.update(list_id: params[:list_id])
+      render json: { message: "Task updated successfully", task: @task }, status: :ok
     else
       render json: { error: "Failed to update task" }, status: :unprocessable_entity
     end
@@ -52,7 +62,6 @@ class TasksController < ApplicationController
     )
   end
   
-
   private
 
   def set_user
@@ -72,5 +81,5 @@ class TasksController < ApplicationController
 
   def task_params
     params.require(:task).permit(:name, :priority, :estimated_time, :start_date, :end_date, :details, :list_id)
-  end
+  end  
 end

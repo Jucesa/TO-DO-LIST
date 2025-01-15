@@ -7,7 +7,12 @@ Rails.application.routes.draw do
       resources :tasks
     end
   end
-
+  resources :tasks do
+    member do
+      patch :update_list
+      
+    end
+  end
   resources :tasks
   resources :lists
   root "home#index"
